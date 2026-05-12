@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
@@ -12,8 +15,6 @@ State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
-  bool isLocked = true;
 
   @override
   Widget build(BuildContext context) {
@@ -30,115 +31,232 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.all(24),
 
-              child: AppCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: StreamBuilder<QuerySnapshot>(
 
-                    const Text(
-                      'Naufal Azriel',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                stream: FirebaseFirestore.instance
+                    .collection('access_logs')
+                    .orderBy(
+                      'timestamp',
+                      descending: true,
+                    )
+                    .limit(1)
+                    .snapshots(),
+
+                builder: (context, snapshot) {
+
+                  // ================= LOADING =================
+                  if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+
+                    return const AppCard(
+                      child: Padding(
+                        padding: EdgeInsets.all(30),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
                       ),
-                    ),
+                    );
+                  }
 
-                    const SizedBox(height: 5),
+                  // ================= EMPTY =================
+                  if (!snapshot.hasData ||
+                      snapshot.data!.docs.isEmpty) {
 
-                    const Text(
-                      'NIM: 10101010',
-                      style: TextStyle(
-                        fontSize: 15,
+                    return const AppCard(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Text(
+                          'Belum ada data akses',
+                        ),
                       ),
-                    ),
+                    );
+                  }
 
-                    const SizedBox(height: 5),
+                  final latest =
+                      snapshot.data!.docs.first;
 
-                    Row(
+                  final data =
+                      latest.data()
+                          as Map<String, dynamic>;
+
+                  final user =
+                      data['user_name'] ?? 'Unknown';
+
+                  final method =
+                      data['method'] ?? '-';
+
+                  final status =
+                      data['status'] ?? '-';
+
+                  final timestamp =
+                      data['timestamp'] as Timestamp?;
+
+                  String formattedTime = '-';
+
+                  if (timestamp != null) {
+
+                    formattedTime = DateFormat(
+                      'HH:mm WIB',
+                    ).format(
+                      timestamp.toDate(),
+                    );
+                  }
+
+                  return AppCard(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+
                       children: [
 
                         const Text(
-                          'Status Pintu Kamar : ',
+                          'Naufal Azriel',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
 
-                        Text(
-                          isLocked ? 'Terkunci' : 'Terbuka',
+                        const SizedBox(height: 5),
 
+                        const Text(
+                          'NIM: 10101010',
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isLocked ? Colors.red : Colors.green,
+                            fontSize: 15,
                           ),
                         ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 5),
+                        const SizedBox(height: 10),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        StreamBuilder<DocumentSnapshot>(
 
-                      children: [
+                          stream: FirebaseFirestore.instance
+                              .collection('door_status')
+                              .doc('current')
+                              .snapshots(),
 
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          builder: (context, doorSnapshot) {
+
+                            bool isOpen = false;
+
+                            if (doorSnapshot.hasData &&
+                                doorSnapshot.data!.exists) {
+
+                              final doorData =
+                                  doorSnapshot.data!.data()
+                                      as Map<String, dynamic>;
+
+                              final doorStatus =
+                                  doorData['status'] ?? 'LOCKED';
+
+                              isOpen =
+                                  doorStatus == "OPEN";
+                            }
+
+                            return Row(
+                              children: [
+
+                                const Text(
+                                  'Status Pintu Kamar : ',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight:
+                                        FontWeight.bold,
+                                  ),
+                                ),
+
+                                Text(
+
+                                  isOpen
+                                      ? 'Terbuka'
+                                      : 'Terkunci',
+
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight:
+                                        FontWeight.bold,
+
+                                    color: isOpen
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment
+                                  .spaceBetween,
 
                           children: [
 
-                            const Text(
-                              'Gedung',
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment
+                                      .start,
+
+                              children: [
+
+                                const Text(
+                                  'Gedung',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 5),
+
+                                const Text(
+                                  '01 - Kamar 01',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight:
+                                        FontWeight.bold,
+                                  ),
+                                ),
+
+                              ],
                             ),
 
-                            const SizedBox(height: 5),
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.end,
 
-                            const Text(
-                              '01 - Kamar 01',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              children: [
+
+                                const Text(
+                                  'Akses Terakhir',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                Text(
+                                  formattedTime,
+
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                              ],
                             ),
 
                           ],
                         ),
 
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-
-                          children: [
-
-                            const Text(
-                              'Akses Terakhir',
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            const Text(
-                              '-',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                          ],
-                        ),
-
                       ],
                     ),
-
-                  ],
-                ),
+                  );
+                },
               ),
             ),
 
@@ -201,7 +319,18 @@ class _HomePageState extends State<HomePage> {
                 children: [
 
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
+
+                      await FirebaseFirestore.instance
+                          .collection('system_control')
+                          .doc('auth_trigger')
+                          .set({
+
+                        'start_auth': true,
+                        'timestamp':
+                            FieldValue.serverTimestamp(),
+                      });
+
                       context.go('/biometric');
                     },
 

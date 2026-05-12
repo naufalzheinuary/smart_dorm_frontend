@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
 
@@ -7,38 +9,147 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
 
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
+      body: Column(
+        children: [
 
-            const AppHeader(
-              title: 'Notifikasi',
+          const AppHeader(
+            title: 'Notifikasi',
+          ),
+
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+
+              stream: FirebaseFirestore.instance
+                  .collection('access_logs')
+                  .orderBy(
+                    'timestamp',
+                    descending: true,
+                  )
+                  .limit(20)
+                  .snapshots(),
+
+              builder: (context, snapshot) {
+
+                // ================= LOADING =================
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                // ================= ERROR =================
+                if (snapshot.hasError) {
+
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                    ),
+                  );
+                }
+
+                // ================= EMPTY =================
+                if (!snapshot.hasData ||
+                    snapshot.data!.docs.isEmpty) {
+
+                  return const Center(
+                    child: Text(
+                      'Belum ada notifikasi',
+                    ),
+                  );
+                }
+
+                final notifications =
+                    snapshot.data!.docs;
+
+                return ListView.builder(
+
+                  itemCount: notifications.length,
+
+                  itemBuilder: (context, index) {
+
+                    final data =
+                        notifications[index];
+
+                    final user =
+                        data['user_name'] ?? 'Unknown';
+
+                    final method =
+                        data['method'] ?? '-';
+
+                    final status =
+                        data['status'] ?? '-';
+
+                    String title;
+                    String subtitle;
+
+                    // ================= GRANTED =================
+                    if (status == "GRANTED") {
+
+                      title =
+                          'Pintu Berhasil Dibuka';
+
+                      subtitle =
+                          '$user menggunakan $method';
+                    }
+
+                    // ================= DENIED =================
+                    else if (
+                        status == "DENIED") {
+
+                      title =
+                          'Percobaan Akses Gagal';
+
+                      subtitle =
+                          '$user gagal autentikasi';
+                    }
+
+                    // ================= MISMATCH =================
+                    else if (
+                        status == "MISMATCH") {
+
+                      title =
+                          'Autentikasi Tidak Cocok';
+
+                      subtitle =
+                          '$user mismatch credential';
+                    }
+
+                    // ================= RFID FAILED =================
+                    else if (
+                        status == "RFID_FAILED") {
+
+                      title =
+                          'RFID Gagal';
+
+                      subtitle =
+                          '$user gagal verifikasi RFID';
+                    }
+
+                    // ================= DEFAULT =================
+                    else {
+
+                      title = status;
+
+                      subtitle =
+                          '$user • $method';
+                    }
+
+                    return _buildNotificationItem(
+                      title: title,
+                      subtitle: subtitle,
+                    );
+                  },
+                );
+              },
             ),
+          ),
 
-            const SizedBox(height: 24),
-
-            _buildNotificationItem(
-              icon: Icons.lock_open,
-              title: 'Pintu Berhasil Dibuka',
-              subtitle: 'Face Recognition berhasil',
-            ),
-
-            _buildNotificationItem(
-              icon: Icons.warning,
-              title: 'Percobaan Akses Gagal',
-              subtitle: 'Fingerprint tidak dikenali',
-            ),
-
-            _buildNotificationItem(
-              icon: Icons.wifi_off,
-              title: 'Device Offline',
-              subtitle: 'Raspberry Pi terputus',
-            ),
-
-          ],
-        ),
+        ],
       ),
 
       bottomNavigationBar: const AppBottomNavbar(
@@ -50,77 +161,56 @@ class NotificationPage extends StatelessWidget {
 }
 
 Widget _buildNotificationItem({
-  required IconData icon,
   required String title,
   required String subtitle,
 }) {
+
   return Padding(
     padding: const EdgeInsets.symmetric(
-      horizontal: 24,
-      vertical: 8,
+      horizontal: 20,
+      vertical: 6,
     ),
 
     child: Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+
+      padding: const EdgeInsets.all(18),
 
       decoration: BoxDecoration(
         color: Colors.white,
 
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
 
-      child: Row(
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
         children: [
 
-          Container(
-            width: 50,
-            height: 50,
-
-            decoration: BoxDecoration(
-              color: const Color(0xFF1565C0).withOpacity(0.1),
-
-              borderRadius: BorderRadius.circular(14),
-            ),
-
-            child: Icon(
-              icon,
-              color: const Color(0xFF1565C0),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
             ),
           ),
 
-          const SizedBox(width: 16),
+          const SizedBox(height: 6),
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-
-              ],
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13,
             ),
           ),
 

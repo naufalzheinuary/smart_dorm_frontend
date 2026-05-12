@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "625563915666",
+    "project_id": "smart-dorm-system",
+    "storage_bucket": "smart-dorm-system.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:625563915666:android:7cdcf1ed72929f59d51d4b",
+        "android_client_info": {
+          "package_name": "com.example.smart_dorm_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWGUTNgHwhDrXwU4gZCIVEf6LpLIaJb6U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
