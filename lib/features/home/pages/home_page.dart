@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
@@ -10,14 +11,18 @@ import 'package:go_router/go_router.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-@override
-State<HomePage> createState() => _HomePageState();
+  @override
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+
+    final currentUser =
+        FirebaseAuth.instance.currentUser;
+
     return Scaffold(
 
       body: SingleChildScrollView(
@@ -31,21 +36,18 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.all(24),
 
-              child: StreamBuilder<QuerySnapshot>(
+              child: FutureBuilder<DocumentSnapshot>(
 
-                stream: FirebaseFirestore.instance
-                    .collection('access_logs')
-                    .orderBy(
-                      'timestamp',
-                      descending: true,
-                    )
-                    .limit(1)
-                    .snapshots(),
+                future: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(currentUser!.uid)
+                    .get(),
 
-                builder: (context, snapshot) {
+                builder: (context, userSnapshot) {
 
-                  // ================= LOADING =================
-                  if (snapshot.connectionState ==
+                  // ================= LOADING USER =================
+
+                  if (userSnapshot.connectionState ==
                       ConnectionState.waiting) {
 
                     return const AppCard(
@@ -58,193 +60,258 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
-                  // ================= EMPTY =================
-                  if (!snapshot.hasData ||
-                      snapshot.data!.docs.isEmpty) {
+                  // ================= USER NOT FOUND =================
+
+                  if (!userSnapshot.hasData ||
+                      !userSnapshot.data!.exists) {
 
                     return const AppCard(
                       child: Padding(
                         padding: EdgeInsets.all(24),
                         child: Text(
-                          'Belum ada data akses',
+                          'Data user tidak ditemukan',
                         ),
                       ),
                     );
                   }
 
-                  final latest =
-                      snapshot.data!.docs.first;
+                  // ================= USER DATA =================
 
-                  final data =
-                      latest.data()
+                  final userData =
+                      userSnapshot.data!.data()
                           as Map<String, dynamic>;
 
-                  final user =
-                      data['user_name'] ?? 'Unknown';
+                  final name =
+                      userData['name'] ?? '-';
 
-                  final method =
-                      data['method'] ?? '-';
+                  final nim =
+                      userData['nim'] ?? '-';
 
-                  final status =
-                      data['status'] ?? '-';
+                  final building =
+                      userData['building'] ?? '-';
 
-                  final timestamp =
-                      data['timestamp'] as Timestamp?;
+                  final room =
+                      userData['room'] ?? '-';
 
-                  String formattedTime = '-';
+                  return StreamBuilder<QuerySnapshot>(
 
-                  if (timestamp != null) {
+                    stream: FirebaseFirestore.instance
+                        .collection('access_logs')
+                        .orderBy(
+                          'timestamp',
+                          descending: true,
+                        )
+                        .limit(1)
+                        .snapshots(),
 
-                    formattedTime = DateFormat(
-                      'HH:mm WIB',
-                    ).format(
-                      timestamp.toDate(),
-                    );
-                  }
+                    builder: (context, snapshot) {
 
-                  return AppCard(
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      // ================= LOADING =================
 
-                      children: [
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
 
-                        const Text(
-                          'Naufal Azriel',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                        return const AppCard(
+                          child: Padding(
+                            padding: EdgeInsets.all(30),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           ),
-                        ),
+                        );
+                      }
 
-                        const SizedBox(height: 5),
+                      // ================= EMPTY =================
 
-                        const Text(
-                          'NIM: 10101010',
-                          style: TextStyle(
-                            fontSize: 15,
+                      if (!snapshot.hasData ||
+                          snapshot.data!.docs.isEmpty) {
+
+                        return const AppCard(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text(
+                              'Belum ada data akses',
+                            ),
                           ),
-                        ),
+                        );
+                      }
 
-                        const SizedBox(height: 10),
+                      final latest =
+                          snapshot.data!.docs.first;
 
-                        StreamBuilder<DocumentSnapshot>(
+                      final data =
+                          latest.data()
+                              as Map<String, dynamic>;
 
-                          stream: FirebaseFirestore.instance
-                              .collection('door_status')
-                              .doc('current')
-                              .snapshots(),
+                      final user =
+                          data['user_name'] ?? 'Unknown';
 
-                          builder: (context, doorSnapshot) {
+                      final method =
+                          data['method'] ?? '-';
 
-                            bool isOpen = false;
+                      final status =
+                          data['status'] ?? '-';
 
-                            if (doorSnapshot.hasData &&
-                                doorSnapshot.data!.exists) {
+                      final timestamp =
+                          data['timestamp'] as Timestamp?;
 
-                              final doorData =
-                                  doorSnapshot.data!.data()
-                                      as Map<String, dynamic>;
+                      String formattedTime = '-';
 
-                              final doorStatus =
-                                  doorData['status'] ?? 'LOCKED';
+                      if (timestamp != null) {
 
-                              isOpen =
-                                  doorStatus == "OPEN";
-                            }
+                        formattedTime = DateFormat(
+                          'HH:mm WIB',
+                        ).format(
+                          timestamp.toDate(),
+                        );
+                      }
 
-                            return Row(
-                              children: [
-
-                                const Text(
-                                  'Status Pintu Kamar : ',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight:
-                                        FontWeight.bold,
-                                  ),
-                                ),
-
-                                Text(
-
-                                  isOpen
-                                      ? 'Terbuka'
-                                      : 'Terkunci',
-
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight:
-                                        FontWeight.bold,
-
-                                    color: isOpen
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment
-                                  .spaceBetween,
+                      return AppCard(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
 
                           children: [
 
-                            Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-
-                              children: [
-
-                                const Text(
-                                  'Gedung',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 5),
-
-                                const Text(
-                                  '01 - Kamar 01',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight:
-                                        FontWeight.bold,
-                                  ),
-                                ),
-
-                              ],
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
 
-                            Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.end,
+                            const SizedBox(height: 5),
+
+                            Text(
+                              'NIM: $nim',
+                              style: const TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            StreamBuilder<DocumentSnapshot>(
+
+                              stream: FirebaseFirestore.instance
+                                  .collection('door_status')
+                                  .doc('current')
+                                  .snapshots(),
+
+                              builder: (context, doorSnapshot) {
+
+                                bool isOpen = false;
+
+                                if (doorSnapshot.hasData &&
+                                    doorSnapshot.data!.exists) {
+
+                                  final doorData =
+                                      doorSnapshot.data!.data()
+                                          as Map<String, dynamic>;
+
+                                  final doorStatus =
+                                      doorData['status'] ?? 'LOCKED';
+
+                                  isOpen =
+                                      doorStatus == "OPEN";
+                                }
+
+                                return Row(
+                                  children: [
+
+                                    const Text(
+                                      'Status Pintu Kamar : ',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+
+                                    Text(
+
+                                      isOpen
+                                          ? 'Terbuka'
+                                          : 'Terkunci',
+
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight:
+                                            FontWeight.bold,
+
+                                        color: isOpen
+                                            ? Colors.green
+                                            : Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 15),
+
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment
+                                      .spaceBetween,
 
                               children: [
 
-                                const Text(
-                                  'Akses Terakhir',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
+                                Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment
+                                          .start,
+
+                                  children: [
+
+                                    const Text(
+                                      'Gedung',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 5),
+
+                                    Text(
+                                      'Gedung $building - Kamar $room',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+
+                                  ],
                                 ),
 
-                                const SizedBox(height: 8),
+                                Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.end,
 
-                                Text(
-                                  formattedTime,
+                                  children: [
 
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                    const Text(
+                                      'Akses Terakhir',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 8),
+
+                                    Text(
+                                      formattedTime,
+
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+
+                                  ],
                                 ),
 
                               ],
@@ -252,9 +319,8 @@ class _HomePageState extends State<HomePage> {
 
                           ],
                         ),
-
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
