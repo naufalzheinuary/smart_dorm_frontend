@@ -1,23 +1,54 @@
 import 'package:flutter/material.dart';
-import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/custom_textfield.dart';
 import 'package:go_router/go_router.dart';
 
-class RegisterPage extends StatelessWidget {
+import '../../../core/widgets/custom_button.dart';
+import '../../../core/widgets/custom_textfield.dart';
+import '../services/auth_service.dart';
+
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
+  State<RegisterPage> createState() =>
+      _RegisterPageState();
+}
+
+class _RegisterPageState
+    extends State<RegisterPage> {
+
+  final _nameController =
+      TextEditingController();
+
+  final _emailController =
+      TextEditingController();
+
+  final _passwordController =
+      TextEditingController();
+
+  final _confirmPasswordController =
+      TextEditingController();
+
+  bool isLoading = false;
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       appBar: AppBar(
         title: const Text('Daftar Akun'),
       ),
 
       body: Padding(
         padding: const EdgeInsets.all(24),
+
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+
           children: [
 
             const Center(
@@ -25,7 +56,8 @@ class RegisterPage extends StatelessWidget {
                 'Daftar Akun',
                 style: TextStyle(
                   fontSize: 32,
-                  fontWeight: FontWeight.bold,
+                  fontWeight:
+                      FontWeight.bold,
                 ),
               ),
             ),
@@ -40,52 +72,209 @@ class RegisterPage extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            const CustomTextField(
-              hintText: 'Nama Lengkap',
+            CustomTextField(
+              controller:
+                  _nameController,
+              hintText:
+                  'Nama Lengkap',
             ),
 
             const SizedBox(height: 16),
 
-            const CustomTextField(
+            CustomTextField(
+              controller:
+                  _emailController,
               hintText: 'Email',
             ),
 
             const SizedBox(height: 16),
 
-            const CustomTextField(
+            CustomTextField(
+              controller:
+                  _passwordController,
               hintText: 'Password',
               obscureText: true,
             ),
 
             const SizedBox(height: 16),
 
-            const CustomTextField(
-              hintText: 'Konfirmasi Password',
+            CustomTextField(
+              controller:
+                  _confirmPasswordController,
+              hintText:
+                  'Konfirmasi Password',
               obscureText: true,
             ),
 
             const SizedBox(height: 24),
 
             CustomButton(
-              text: 'Daftar',
-              onPressed: () {},
+
+              text: isLoading
+                  ? 'Loading...'
+                  : 'Daftar',
+
+              onPressed: () async {
+
+                if (isLoading) return;
+
+                // VALIDASI
+                if (_nameController.text
+                    .trim()
+                    .isEmpty) {
+
+                  ScaffoldMessenger.of(
+                          context)
+                      .showSnackBar(
+
+                    const SnackBar(
+                      content: Text(
+                        'Nama wajib diisi',
+                      ),
+                    ),
+
+                  );
+
+                  return;
+                }
+
+                if (_emailController.text
+                    .trim()
+                    .isEmpty) {
+
+                  ScaffoldMessenger.of(
+                          context)
+                      .showSnackBar(
+
+                    const SnackBar(
+                      content: Text(
+                        'Email wajib diisi',
+                      ),
+                    ),
+
+                  );
+
+                  return;
+                }
+
+                if (_passwordController
+                    .text
+                    .trim()
+                    .isEmpty) {
+
+                  ScaffoldMessenger.of(
+                          context)
+                      .showSnackBar(
+
+                    const SnackBar(
+                      content: Text(
+                        'Password wajib diisi',
+                      ),
+                    ),
+
+                  );
+
+                  return;
+                }
+
+                if (_passwordController
+                        .text !=
+                    _confirmPasswordController
+                        .text) {
+
+                  ScaffoldMessenger.of(
+                          context)
+                      .showSnackBar(
+
+                    const SnackBar(
+                      content: Text(
+                        'Password tidak sama',
+                      ),
+                    ),
+
+                  );
+
+                  return;
+                }
+
+                setState(() {
+                  isLoading = true;
+                });
+
+                final error =
+                    await AuthService()
+                        .register(
+
+                  name:
+                      _nameController.text
+                          .trim(),
+
+                  email:
+                      _emailController.text
+                          .trim(),
+
+                  password:
+                      _passwordController
+                          .text
+                          .trim(),
+
+                );
+
+                setState(() {
+                  isLoading = false;
+                });
+
+                if (error != null) {
+
+                  ScaffoldMessenger.of(
+                          context)
+                      .showSnackBar(
+
+                    SnackBar(
+                      content:
+                          Text(error),
+                    ),
+
+                  );
+
+                  return;
+                }
+
+                ScaffoldMessenger.of(
+                        context)
+                    .showSnackBar(
+
+                  const SnackBar(
+                    content: Text(
+                      'Register berhasil',
+                    ),
+                  ),
+
+                );
+
+                context.go('/login');
+
+              },
+
             ),
 
             const SizedBox(height: 16),
 
             TextButton(
+
               onPressed: () {
                 context.go('/login');
               },
+
               child: const Text(
                 'Sudah punya akun? Login',
               ),
+
             ),
 
           ],
         ),
       ),
-
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -104,15 +106,34 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 30),
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 24,
+              ),
 
               child: SizedBox(
+
                 width: double.infinity,
 
                 child: ElevatedButton(
-                  onPressed: () {},
 
-                  child: const Text('Logout'),
+                  onPressed: () async {
+
+                    await FirebaseAuth.instance
+                        .signOut();
+
+                    if (context.mounted) {
+
+                      context.go('/login');
+
+                    }
+
+                  },
+
+                  child: const Text(
+                    'Logout',
+                  ),
+
                 ),
               ),
             ),
