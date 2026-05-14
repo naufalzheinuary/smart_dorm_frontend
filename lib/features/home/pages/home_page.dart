@@ -95,14 +95,18 @@ class _HomePageState extends State<HomePage> {
 
                   return StreamBuilder<QuerySnapshot>(
 
-                    stream: FirebaseFirestore.instance
-                        .collection('access_logs')
-                        .orderBy(
-                          'timestamp',
-                          descending: true,
-                        )
-                        .limit(1)
-                        .snapshots(),
+                  stream: FirebaseFirestore.instance
+                      .collection('access_logs')
+                      .where(
+                        'uid',
+                        isEqualTo: currentUser.uid,
+                      )
+                      .orderBy(
+                        'timestamp',
+                        descending: true,
+                      )
+                      .limit(1)
+                      .snapshots(),
 
                     builder: (context, snapshot) {
 
@@ -196,7 +200,7 @@ class _HomePageState extends State<HomePage> {
 
                               stream: FirebaseFirestore.instance
                                   .collection('door_status')
-                                  .doc('current')
+                                  .doc('${building}_${room}')
                                   .snapshots(),
 
                               builder: (context, doorSnapshot) {

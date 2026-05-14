@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
@@ -9,6 +10,12 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final currentUid =
+        FirebaseAuth
+            .instance
+            .currentUser!
+            .uid;
 
     return Scaffold(
 
@@ -22,14 +29,18 @@ class NotificationPage extends StatelessWidget {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
 
-              stream: FirebaseFirestore.instance
-                  .collection('access_logs')
-                  .orderBy(
-                    'timestamp',
-                    descending: true,
-                  )
-                  .limit(20)
-                  .snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('access_logs')
+                .where(
+                  'uid',
+                  isEqualTo: currentUid,
+                )
+                .orderBy(
+                  'timestamp',
+                  descending: true,
+                )
+                .limit(20)
+                .snapshots(),
 
               builder: (context, snapshot) {
 

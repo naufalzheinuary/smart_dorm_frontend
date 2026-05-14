@@ -1,15 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
 
-class HistoryPage extends StatelessWidget {
-  const HistoryPage({super.key});
+class HistoryPage extends StatefulWidget {
+
+  const HistoryPage({
+    super.key,
+  });
+
+  @override
+  State<HistoryPage>
+      createState() =>
+          _HistoryPageState();
+}
+
+class _HistoryPageState
+    extends State<HistoryPage> {
+
+  String role = 'user';
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+
+    super.initState();
+
+    loadRole();
+  }
+
+  Future<void> loadRole() async {
+
+    final uid =
+        FirebaseAuth
+            .instance
+            .currentUser!
+            .uid;
+
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+
+    role = doc['role'];
+
+    setState(() {
+
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+
+    final currentUid =
+        FirebaseAuth
+            .instance
+            .currentUser!
+            .uid;
+
+    if (isLoading) {
+
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
 
@@ -23,13 +85,29 @@ class HistoryPage extends StatelessWidget {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
 
-              stream: FirebaseFirestore.instance
-                  .collection('access_logs')
-                  .orderBy(
-                    'timestamp',
-                    descending: true,
-                  )
-                  .snapshots(),
+              stream: (
+
+                role == 'admin'
+
+                    ? FirebaseFirestore.instance
+                        .collection('access_logs')
+                        .orderBy(
+                          'timestamp',
+                          descending: true,
+                        )
+
+                    : FirebaseFirestore.instance
+                        .collection('access_logs')
+                        .where(
+                          'uid',
+                          isEqualTo: currentUid,
+                        )
+                        .orderBy(
+                          'timestamp',
+                          descending: true,
+                        )
+
+              ).snapshots(),
 
               builder: (context, snapshot) {
 
