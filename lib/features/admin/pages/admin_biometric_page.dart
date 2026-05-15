@@ -322,7 +322,7 @@ class _AdminBiometricPageState
             const SizedBox(height: 8),
 
             const Text(
-              'Centralized biometric enrollment system',
+              'Centralized Biometric Enrollment System',
             ),
 
             const SizedBox(height: 32),

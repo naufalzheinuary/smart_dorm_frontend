@@ -28,157 +28,164 @@ class _LoginPageState
   Widget build(BuildContext context) {
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
 
-      body: Padding(
+      body: SafeArea(
+        child: SingleChildScrollView(
 
-        padding:
-            const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
 
-        child: Column(
+          child: ConstrainedBox(
 
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
-
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-
-          children: [
-
-            Image.asset(
-              'assets/images/logo_sdl.png',
-              height: 150,
+            constraints: BoxConstraints(
+              minHeight:
+                  MediaQuery.of(context)
+                      .size
+                      .height -
+                  48,
             ),
 
-            const SizedBox(height: 24),
+            child: Column(
 
-            const Center(
-              child: Text(
-                'Selamat Datang',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight:
-                      FontWeight.bold,
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
+
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+
+              children: [
+
+                Image.asset(
+                  'assets/images/logo_sdl.png',
+                  height: 150,
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 12),
+                const SizedBox(height: 24),
 
-            const Center(
-              child: Text(
-                'Login to Smart Dorm',
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            CustomTextField(
-              controller:
-                  _emailController,
-              hintText: 'Email',
-            ),
-
-            const SizedBox(height: 16),
-
-            CustomTextField(
-              controller:
-                  _passwordController,
-              hintText: 'Password',
-              obscureText: true,
-            ),
-
-            const SizedBox(height: 24),
-
-            CustomButton(
-
-              text: isLoading
-                  ? 'Loading...'
-                  : 'Login',
-
-              onPressed: () async {
-
-                if (isLoading) return;
-
-                setState(() {
-                  isLoading = true;
-                });
-
-                final error =
-                    await AuthService()
-                        .login(
-
-                  email:
-                      _emailController.text
-                          .trim(),
-
-                  password:
-                      _passwordController
-                          .text
-                          .trim(),
-
-                );
-
-                if (error != null) {
-
-                  setState(() {
-                    isLoading = false;
-                  });
-
-                  ScaffoldMessenger.of(
-                          context)
-                      .showSnackBar(
-
-                    SnackBar(
-                      content:
-                          Text(error),
+                const Center(
+                  child: Text(
+                    'Selamat Datang',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight:
+                          FontWeight.bold,
                     ),
+                  ),
+                ),
 
-                  );
+                const SizedBox(height: 12),
 
-                  return;
-                }
+                const Center(
+                  child: Text(
+                    'Login to Smart Dorm',
+                  ),
+                ),
 
-                final role =
-                    await AuthService()
-                        .getRole();
+                const SizedBox(height: 32),
 
-                setState(() {
-                  isLoading = false;
-                });
+                CustomTextField(
+                  controller:
+                      _emailController,
+                  hintText: 'Email',
+                ),
 
-                // ADMIN
-                if (role == 'admin') {
+                const SizedBox(height: 16),
 
-                  context.go('/admin');
+                CustomTextField(
+                  controller:
+                      _passwordController,
+                  hintText: 'Password',
+                  obscureText: true,
+                ),
 
-                }
+                const SizedBox(height: 24),
 
-                // USER
-                else {
+                CustomButton(
 
-                  context.go('/home');
+                  text: isLoading
+                      ? 'Loading...'
+                      : 'Login',
 
-                }
+                  onPressed: () async {
 
-              },
+                    if (isLoading) return;
 
+                    setState(() {
+                      isLoading = true;
+                    });
+
+                    final error =
+                        await AuthService()
+                            .login(
+
+                      email:
+                          _emailController
+                              .text
+                              .trim(),
+
+                      password:
+                          _passwordController
+                              .text
+                              .trim(),
+
+                    );
+
+                    if (error != null) {
+
+                      setState(() {
+                        isLoading = false;
+                      });
+
+                      ScaffoldMessenger.of(
+                              context)
+                          .showSnackBar(
+
+                        SnackBar(
+                          content:
+                              Text(error),
+                        ),
+
+                      );
+
+                      return;
+                    }
+
+                    final role =
+                        await AuthService()
+                            .getRole();
+
+                    setState(() {
+                      isLoading = false;
+                    });
+
+                    if (role == 'admin') {
+
+                      context.go('/admin');
+
+                    } else {
+
+                      context.go('/home');
+
+                    }
+
+                  },
+
+                ),
+
+                const SizedBox(height: 16),
+
+                Center(
+                  child: Text(
+                    'Hubungi admin untuk mendapatkan akun',
+                    style: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+
+              ],
             ),
-
-            const SizedBox(height: 16),
-
-            TextButton(
-
-              onPressed: () {
-                context.go('/register');
-              },
-
-              child: const Text(
-                'Belum punya akun? Daftar',
-              ),
-
-            ),
-
-          ],
+          ),
         ),
       ),
     );

@@ -20,136 +20,123 @@ class AdminPage extends StatelessWidget {
 
         padding: const EdgeInsets.all(20),
 
-        child: GridView.count(
-
-          crossAxisCount: 2,
-
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+        child: Column(
 
           children: [
 
-            // ================= USER =================
+            GridView.count(
 
-            _buildMenuCard(
+              shrinkWrap: true,
 
-              context,
+              physics:
+                  const NeverScrollableScrollPhysics(),
 
-              icon: Icons.people,
+              crossAxisCount: 2,
 
-              title: 'List User',
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
 
-              route: '/admin-users',
+              children: [
 
+                _buildMenuCard(
+                  context,
+                  icon: Icons.people,
+                  title: 'List User',
+                  route: '/admin-users',
+                ),
+
+                _buildMenuCard(
+                  context,
+                  icon: Icons.history,
+                  title: 'Access Logs',
+                  route: '/admin-logs',
+                ),
+
+                _buildMenuCard(
+                  context,
+                  icon: Icons.lock_open,
+                  title: 'Open Door',
+                  route: '/admin-door',
+                ),
+
+                _buildMenuCard(
+                  context,
+                  icon: Icons.fingerprint,
+                  title: 'Biometric',
+                  route: '/admin-biometric',
+                ),
+
+              ],
             ),
 
-            // ================= ACCESS LOG =================
-
-            _buildMenuCard(
-
-              context,
-
-              icon: Icons.history,
-
-              title: 'Access Logs',
-
-              route: '/admin-logs',
-
-            ),
-
-            // ================= OPEN DOOR =================
-
-            _buildMenuCard(
-
-              context,
-
-              icon: Icons.lock_open,
-
-              title: 'Open Door',
-
-              route: '/admin-door',
-
-            ),
-
-            // ================= BIOMETRIC =================
-
-            _buildMenuCard(
-
-              context,
-
-              icon: Icons.fingerprint,
-
-              title: 'Biometric',
-
-              route: '/admin-biometric',
-
-            ),
+            const SizedBox(height: 24),
 
             // ================= LOGOUT =================
 
-            GestureDetector(
+            SizedBox(
 
-              onTap: () async {
+              width: 200,
+              height: 70,
 
-                await FirebaseAuth.instance
-                    .signOut();
+              child: GestureDetector(
 
-                if (context.mounted) {
+                onTap: () async {
 
-                  context.go('/login');
+                  await FirebaseAuth.instance
+                      .signOut();
 
-                }
+                  if (context.mounted) {
 
-              },
+                    context.go('/login');
 
-              child: Container(
+                  }
 
-                decoration: BoxDecoration(
+                },
 
-                  color: Colors.red,
+                child: Container(
 
-                  borderRadius:
-                      BorderRadius.circular(24),
+                  decoration: BoxDecoration(
 
-                ),
+                    color: Colors.red,
 
-                child: const Column(
+                    borderRadius:
+                        BorderRadius.circular(20),
 
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  ),
 
-                  children: [
+                  child: const Row(
 
-                    Icon(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center,
 
-                      Icons.logout,
+                    children: [
 
-                      size: 48,
-
-                      color: Colors.white,
-
-                    ),
-
-                    SizedBox(height: 12),
-
-                    Text(
-
-                      'Logout',
-
-                      style: TextStyle(
-
+                      Icon(
+                        Icons.logout,
                         color: Colors.white,
+                      ),
 
-                        fontSize: 18,
+                      SizedBox(width: 12),
 
-                        fontWeight:
-                            FontWeight.bold,
+                      Text(
+
+                        'Logout',
+
+                        style: TextStyle(
+
+                          color: Colors.white,
+
+                          fontSize: 18,
+
+                          fontWeight:
+                              FontWeight.bold,
+
+                        ),
 
                       ),
 
-                    ),
-
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

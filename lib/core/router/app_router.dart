@@ -51,18 +51,6 @@ final GoRouter appRouter = GoRouter(
 
     // ================= REGISTER =================
 
-    GoRoute(
-
-      path: '/register',
-
-      builder: (context, state) {
-
-        return const RegisterPage();
-
-      },
-
-    ),
-
     // ================= HOME =================
 
     GoRoute(

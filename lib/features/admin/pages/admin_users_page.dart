@@ -326,6 +326,30 @@ class _AdminUsersPageState
 
                             children: [
 
+                              // ================= ACTIVE SWITCH =================
+
+                              Switch(
+
+                                value: isActive,
+
+                                activeColor: Colors.green,
+
+                                onChanged: (value) async {
+
+                                  await FirebaseFirestore
+                                      .instance
+                                      .collection('users')
+                                      .doc(docId)
+                                      .update({
+
+                                    'is_active': value,
+
+                                  });
+
+                                },
+
+                              ),
+
                               const Spacer(),
 
                               // ================= EDIT =================
