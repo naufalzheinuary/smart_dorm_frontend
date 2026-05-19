@@ -55,14 +55,14 @@ class AdminPage extends StatelessWidget {
                 _buildMenuCard(
                   context,
                   icon: Icons.lock_open,
-                  title: 'Open Door',
+                  title: 'Emergency Door',
                   route: '/admin-door',
                 ),
 
                 _buildMenuCard(
                   context,
                   icon: Icons.fingerprint,
-                  title: 'Biometric',
+                  title: 'Enrollment User',
                   route: '/admin-biometric',
                 ),
 

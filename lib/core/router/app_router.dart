@@ -16,6 +16,7 @@ import '../../features/admin/pages/admin_page.dart';
 import '../../features/admin/pages/admin_users_page.dart';
 import '../../features/admin/pages/admin_logs_page.dart';
 import '../../features/admin/pages/admin_biometric_page.dart';
+import '../../features/admin/pages/admin_door_page.dart';
 
 final GoRouter appRouter = GoRouter(
 
@@ -166,6 +167,18 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
 
         return const BiometricPage();
+
+      },
+
+    ),
+
+    GoRoute(
+
+      path: '/admin-door',
+
+      builder: (context, state) {
+
+        return const AdminDoorPage();
 
       },
 
