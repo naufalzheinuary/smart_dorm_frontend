@@ -164,7 +164,7 @@ class NotificationPage extends StatelessWidget {
       ),
 
       bottomNavigationBar: const AppBottomNavbar(
-        currentIndex: 2,
+        currentIndex: 3,
       ),
 
     );

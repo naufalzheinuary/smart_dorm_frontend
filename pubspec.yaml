@@ -41,6 +41,8 @@ dependencies:
   cloud_firestore: ^6.4.0
   intl: ^0.20.2
   firebase_auth: ^6.1.0
+  mjpeg_view: ^1.0.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

@@ -346,7 +346,7 @@ class ProfilePage extends StatelessWidget {
 
       bottomNavigationBar:
           const AppBottomNavbar(
-        currentIndex: 3,
+        currentIndex: 4,
       ),
 
     );

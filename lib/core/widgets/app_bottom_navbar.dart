@@ -12,60 +12,149 @@ class AppBottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
 
-      currentIndex: currentIndex,
+    return Stack(
 
-      onTap: (index) {
+      clipBehavior: Clip.none,
 
-        if (index == 0) {
-          context.go('/home');
-        }
+      alignment: Alignment.bottomCenter,
 
-        if (index == 1) {
-          context.go('/history');
-        }
+      children: [
 
-        if (index == 2) {
-          context.go('/notification');
-        }
+        // =========================
+        // BOTTOM NAVBAR
+        // =========================
 
-        if (index == 3) {
-          context.go('/profile');
-        }
+        BottomNavigationBar(
 
-      },
+          currentIndex: currentIndex,
 
-      type: BottomNavigationBarType.fixed,
+          onTap: (index) {
 
-      backgroundColor: const Color(0xFF1565C0),
+            if (index == 0) {
+              context.go('/home');
+            }
 
-      selectedItemColor: Colors.white,
+            if (index == 1) {
+              context.go('/history');
+            }
 
-      unselectedItemColor: Colors.white70,
+            if (index == 3) {
+              context.go('/notification');
+            }
 
-      items: const [
+            if (index == 4) {
+              context.go('/profile');
+            }
+          },
 
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Beranda',
+          type:
+              BottomNavigationBarType.fixed,
+
+          backgroundColor:
+              const Color(0xFF1565C0),
+
+          selectedItemColor:
+              Colors.white,
+
+          unselectedItemColor:
+              Colors.white70,
+
+          items: const [
+
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Beranda',
+            ),
+
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history),
+              label: 'Riwayat',
+            ),
+
+            // =========================
+            // EMPTY SPACE FOR SCAN
+            // =========================
+
+            BottomNavigationBarItem(
+
+              icon: SizedBox(
+                height: 40,
+              ),
+
+              label: 'Biometric',
+            ),
+
+            BottomNavigationBarItem(
+              icon:
+                  Icon(Icons.notifications),
+              label: 'Notifikasi',
+            ),
+
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Akun',
+            ),
+
+          ],
         ),
 
-        BottomNavigationBarItem(
-          icon: Icon(Icons.history),
-          label: 'History',
-        ),
+        // =========================
+        // FLOATING SCAN BUTTON
+        // =========================
 
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: 'Notifikasi',
-        ),
+        Positioned(
 
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Akun',
-        ),
+          top: -18,
 
+          child: GestureDetector(
+
+            onTap: () {
+
+              context.go('/biometric');
+
+            },
+
+            child: Container(
+
+              width: 65,
+              height: 65,
+
+              decoration: BoxDecoration(
+
+                color:
+                    const Color(0xFF1565C0),
+
+                borderRadius:
+                    BorderRadius.circular(
+                        18),
+
+                boxShadow: [
+
+                  BoxShadow(
+
+                    color: Colors.black
+                        .withOpacity(0.25),
+
+                    blurRadius: 12,
+
+                    offset:
+                        const Offset(0, 6),
+                  ),
+                ],
+              ),
+
+              child: const Icon(
+
+                Icons.fingerprint,
+
+                color: Colors.white,
+
+                size: 40,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

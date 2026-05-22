@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mjpeg_view/mjpeg_view.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../core/widgets/app_bottom_navbar.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
+
 import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
+
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() =>
+      _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState
+    extends State<HomePage> {
+
+  bool showCamera = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,35 +34,53 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
 
       body: SingleChildScrollView(
+
         child: Column(
           children: [
+
+            // =========================
+            // HEADER
+            // =========================
 
             const AppHeader(
               title: 'Smart Dorm Lock',
             ),
 
+            // =========================
+            // USER CARD
+            // =========================
+
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding:
+                  const EdgeInsets.all(24),
 
-              child: FutureBuilder<DocumentSnapshot>(
+              child:
+                  FutureBuilder<DocumentSnapshot>(
 
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(currentUser!.uid)
-                    .get(),
+                future:
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(currentUser!.uid)
+                        .get(),
 
-                builder: (context, userSnapshot) {
+                builder:
+                    (context, userSnapshot) {
 
                   // ================= LOADING USER =================
 
-                  if (userSnapshot.connectionState ==
+                  if (userSnapshot
+                          .connectionState ==
                       ConnectionState.waiting) {
 
                     return const AppCard(
+
                       child: Padding(
-                        padding: EdgeInsets.all(30),
+                        padding:
+                            EdgeInsets.all(30),
+
                         child: Center(
-                          child: CircularProgressIndicator(),
+                          child:
+                              CircularProgressIndicator(),
                         ),
                       ),
                     );
@@ -63,11 +89,15 @@ class _HomePageState extends State<HomePage> {
                   // ================= USER NOT FOUND =================
 
                   if (!userSnapshot.hasData ||
-                      !userSnapshot.data!.exists) {
+                      !userSnapshot
+                          .data!.exists) {
 
                     return const AppCard(
+
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding:
+                            EdgeInsets.all(24),
+
                         child: Text(
                           'Data user tidak ditemukan',
                         ),
@@ -93,33 +123,46 @@ class _HomePageState extends State<HomePage> {
                   final room =
                       userData['room'] ?? '-';
 
-                  return StreamBuilder<QuerySnapshot>(
+                  return StreamBuilder<
+                      QuerySnapshot>(
 
-                  stream: FirebaseFirestore.instance
-                      .collection('access_logs')
-                      .where(
-                        'uid',
-                        isEqualTo: currentUser.uid,
-                      )
-                      .orderBy(
-                        'timestamp',
-                        descending: true,
-                      )
-                      .limit(1)
-                      .snapshots(),
+                    stream:
+                        FirebaseFirestore
+                            .instance
+                            .collection(
+                                'access_logs')
+                            .where(
+                              'uid',
+                              isEqualTo:
+                                  currentUser.uid,
+                            )
+                            .orderBy(
+                              'timestamp',
+                              descending: true,
+                            )
+                            .limit(1)
+                            .snapshots(),
 
-                    builder: (context, snapshot) {
+                    builder:
+                        (context, snapshot) {
 
                       // ================= LOADING =================
 
-                      if (snapshot.connectionState ==
-                          ConnectionState.waiting) {
+                      if (snapshot
+                              .connectionState ==
+                          ConnectionState
+                              .waiting) {
 
                         return const AppCard(
+
                           child: Padding(
-                            padding: EdgeInsets.all(30),
+                            padding:
+                                EdgeInsets.all(
+                                    30),
+
                             child: Center(
-                              child: CircularProgressIndicator(),
+                              child:
+                                  CircularProgressIndicator(),
                             ),
                           ),
                         );
@@ -128,11 +171,16 @@ class _HomePageState extends State<HomePage> {
                       // ================= EMPTY =================
 
                       if (!snapshot.hasData ||
-                          snapshot.data!.docs.isEmpty) {
+                          snapshot.data!.docs
+                              .isEmpty) {
 
                         return const AppCard(
+
                           child: Padding(
-                            padding: EdgeInsets.all(24),
+                            padding:
+                                EdgeInsets.all(
+                                    24),
+
                             child: Text(
                               'Belum ada data akses',
                             ),
@@ -141,29 +189,25 @@ class _HomePageState extends State<HomePage> {
                       }
 
                       final latest =
-                          snapshot.data!.docs.first;
+                          snapshot
+                              .data!.docs.first;
 
                       final data =
                           latest.data()
-                              as Map<String, dynamic>;
-
-                      final user =
-                          data['user_name'] ?? 'Unknown';
-
-                      final method =
-                          data['method'] ?? '-';
-
-                      final status =
-                          data['status'] ?? '-';
+                              as Map<String,
+                                  dynamic>;
 
                       final timestamp =
-                          data['timestamp'] as Timestamp?;
+                          data['timestamp']
+                              as Timestamp?;
 
-                      String formattedTime = '-';
+                      String formattedTime =
+                          '-';
 
                       if (timestamp != null) {
 
-                        formattedTime = DateFormat(
+                        formattedTime =
+                            DateFormat(
                           'HH:mm WIB',
                         ).format(
                           timestamp.toDate(),
@@ -171,54 +215,81 @@ class _HomePageState extends State<HomePage> {
                       }
 
                       return AppCard(
+
                         child: Column(
                           crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              CrossAxisAlignment
+                                  .start,
 
                           children: [
 
                             Text(
                               name,
-                              style: const TextStyle(
+
+                              style:
+                                  const TextStyle(
                                 fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                                fontWeight:
+                                    FontWeight
+                                        .bold,
                               ),
                             ),
 
-                            const SizedBox(height: 5),
+                            const SizedBox(
+                                height: 5),
 
                             Text(
                               'NIM: $nim',
-                              style: const TextStyle(
+
+                              style:
+                                  const TextStyle(
                                 fontSize: 15,
                               ),
                             ),
 
-                            const SizedBox(height: 10),
+                            const SizedBox(
+                                height: 10),
 
-                            StreamBuilder<DocumentSnapshot>(
+                            StreamBuilder<
+                                DocumentSnapshot>(
 
-                              stream: FirebaseFirestore.instance
-                                  .collection('door_status')
-                                  .doc('${building}_${room}')
-                                  .snapshots(),
+                              stream:
+                                  FirebaseFirestore
+                                      .instance
+                                      .collection(
+                                          'door_status')
+                                      .doc(
+                                          '${building}_${room}')
+                                      .snapshots(),
 
-                              builder: (context, doorSnapshot) {
+                              builder: (context,
+                                  doorSnapshot) {
 
-                                bool isOpen = false;
+                                bool isOpen =
+                                    false;
 
-                                if (doorSnapshot.hasData &&
-                                    doorSnapshot.data!.exists) {
+                                if (doorSnapshot
+                                        .hasData &&
+                                    doorSnapshot
+                                        .data!
+                                        .exists) {
 
                                   final doorData =
-                                      doorSnapshot.data!.data()
-                                          as Map<String, dynamic>;
+                                      doorSnapshot
+                                              .data!
+                                              .data()
+                                          as Map<
+                                              String,
+                                              dynamic>;
 
                                   final doorStatus =
-                                      doorData['status'] ?? 'LOCKED';
+                                      doorData[
+                                              'status'] ??
+                                          'LOCKED';
 
                                   isOpen =
-                                      doorStatus == "OPEN";
+                                      doorStatus ==
+                                          "OPEN";
                                 }
 
                                 return Row(
@@ -226,10 +297,15 @@ class _HomePageState extends State<HomePage> {
 
                                     const Text(
                                       'Status Pintu Kamar : ',
-                                      style: TextStyle(
-                                        fontSize: 16,
+
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            16,
+
                                         fontWeight:
-                                            FontWeight.bold,
+                                            FontWeight
+                                                .bold,
                                       ),
                                     ),
 
@@ -239,14 +315,20 @@ class _HomePageState extends State<HomePage> {
                                           ? 'Terbuka'
                                           : 'Terkunci',
 
-                                      style: TextStyle(
-                                        fontSize: 18,
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            18,
+
                                         fontWeight:
-                                            FontWeight.bold,
+                                            FontWeight
+                                                .bold,
 
                                         color: isOpen
-                                            ? Colors.green
-                                            : Colors.red,
+                                            ? Colors
+                                                .green
+                                            : Colors
+                                                .red,
                                       ),
                                     ),
                                   ],
@@ -254,7 +336,8 @@ class _HomePageState extends State<HomePage> {
                               },
                             ),
 
-                            const SizedBox(height: 15),
+                            const SizedBox(
+                                height: 15),
 
                             Row(
                               mainAxisAlignment:
@@ -272,55 +355,72 @@ class _HomePageState extends State<HomePage> {
 
                                     const Text(
                                       'Gedung',
-                                      style: TextStyle(
-                                        fontSize: 16,
+
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            16,
                                       ),
                                     ),
 
-                                    const SizedBox(height: 5),
+                                    const SizedBox(
+                                        height:
+                                            5),
 
                                     Text(
                                       'Gedung $building - Kamar $room',
-                                      style: const TextStyle(
-                                        fontSize: 15,
+
+                                      style:
+                                          const TextStyle(
+                                        fontSize:
+                                            15,
+
                                         fontWeight:
-                                            FontWeight.bold,
+                                            FontWeight
+                                                .bold,
                                       ),
                                     ),
-
                                   ],
                                 ),
 
                                 Column(
                                   crossAxisAlignment:
-                                      CrossAxisAlignment.end,
+                                      CrossAxisAlignment
+                                          .end,
 
                                   children: [
 
                                     const Text(
                                       'Akses Terakhir',
-                                      style: TextStyle(
-                                        fontSize: 16,
+
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            16,
                                       ),
                                     ),
 
-                                    const SizedBox(height: 8),
+                                    const SizedBox(
+                                        height:
+                                            8),
 
                                     Text(
                                       formattedTime,
 
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
+                                      style:
+                                          const TextStyle(
+                                        fontSize:
+                                            15,
+
+                                        fontWeight:
+                                            FontWeight
+                                                .bold,
                                       ),
                                     ),
-
                                   ],
                                 ),
-
                               ],
                             ),
-
                           ],
                         ),
                       );
@@ -330,50 +430,21 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-
-              child: SizedBox(
-                width: double.infinity,
-                height: 200,
-
-                child: AppCard(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-
-                      Icon(
-                        Icons.videocam,
-                        size: 80,
-                        color: Colors.grey.shade400,
-                      ),
-
-                      const SizedBox(height: 5),
-
-                      Text(
-                        'Preview Kamera Disini',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
+            // =========================
+            // CAMERA TITLE
+            // =========================
 
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.symmetric(
+                horizontal: 24,
+              ),
 
               child: Align(
                 alignment: Alignment.centerLeft,
 
                 child: Text(
-                  'Fitur Aplikasi',
+                  'Monitoring Kamera',
+
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -384,76 +455,186 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 10),
 
-            Center(
-              child: Column(
-                children: [
+            // =========================
+            // CAMERA PREVIEW
+            // =========================
 
-                  GestureDetector(
-                    onTap: () async {
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 24,
+              ),
 
-                      await FirebaseFirestore.instance
-                          .collection('system_control')
-                          .doc('auth_trigger')
-                          .set({
+              child: SizedBox(
 
-                        'start_auth': true,
-                        'timestamp':
-                            FieldValue.serverTimestamp(),
-                      });
+                width: double.infinity,
+                height: 290,
 
-                      context.go('/biometric');
-                    },
+                child: AppCard(
 
-                    child: Container(
-                      width: 90,
-                      height: 90,
+                  child: Column(
+                    children: [
 
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1565C0),
+                      Expanded(
 
-                        borderRadius: BorderRadius.circular(15),
+                        child: ClipRRect(
 
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 12,
-                            offset: Offset(0, 6),
+                          borderRadius:
+                              BorderRadius.circular(
+                                  10),
+
+                          child: showCamera
+
+                              ? MjpegView(
+
+                                  uri:
+                                      'https://bernard-compact-noticed-primary.trycloudflare.com/video_feed',
+
+                                  fit: BoxFit.cover,
+
+                                  width:
+                                      double.infinity,
+
+                                  timeout:
+                                      const Duration(
+                                    seconds: 15,
+                                  ),
+                                )
+
+                              : Column(
+
+                                  mainAxisAlignment:
+                                      MainAxisAlignment
+                                          .center,
+
+                                  children: [
+
+                                    Icon(
+                                      Icons.videocam,
+
+                                      size: 55,
+
+                                      color: Colors
+                                          .grey
+                                          .shade400,
+                                    ),
+
+                                    const SizedBox(
+                                        height:
+                                            10),
+
+                                    Text(
+                                      'Preview Kamera',
+
+                                      style:
+                                          TextStyle(
+                                        fontSize:
+                                            18,
+
+                                        color: Colors
+                                            .grey
+                                            .shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      SizedBox(
+
+                        width: double.infinity,
+                        height: 45,
+
+                        child:
+                            ElevatedButton.icon(
+
+                          onPressed: () async {
+
+                            // ================= STOP CAMERA =================
+
+                            if (showCamera) {
+
+                              try {
+
+                                await http.get(
+                                  Uri.parse(
+                                    'https://bernard-compact-noticed-primary.trycloudflare.com/stop',
+                                  ),
+                                );
+
+                              } catch (e) {
+
+                                print(
+                                  'Stop camera error: $e',
+                                );
+                              }
+                            }
+
+                            // ================= SAFETY CHECK =================
+
+                            if (!mounted) return;
+
+                            // ================= TOGGLE =================
+
+                            setState(() {
+
+                              showCamera =
+                                  !showCamera;
+
+                            });
+                          },
+
+                          icon: Icon(
+
+                            showCamera
+                                ? Icons.stop
+                                : Icons.play_arrow,
                           ),
-                        ],
+
+                          label: Text(
+
+                            showCamera
+                                ? 'Matikan Kamera'
+                                : 'Lihat Kamera',
+                          ),
+
+                          style:
+                              ElevatedButton
+                                  .styleFrom(
+
+                            backgroundColor:
+                                const Color(
+                                    0xFF1565C0),
+
+                            foregroundColor:
+                                Colors.white,
+
+                            shape:
+                                RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius
+                                      .circular(
+                                          12),
+                            ),
+                          ),
+                        ),
                       ),
-
-                      child: const Icon(
-                        Icons.power_settings_new,
-                        size: 55,
-                        color: Colors.white,
-                      ),
-                    ),
+                    ],
                   ),
-
-                  const SizedBox(height: 10),
-
-                  const Text(
-                    'Scan Biometric',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 40),
-
           ],
         ),
       ),
 
-      bottomNavigationBar: const AppBottomNavbar(
+      bottomNavigationBar:
+          const AppBottomNavbar(
         currentIndex: 0,
       ),
-
     );
   }
 }
