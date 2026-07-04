@@ -25,6 +25,8 @@ class _HomePageState
 
   bool showCamera = false;
 
+  String? cameraUrl;
+
   @override
   Widget build(BuildContext context) {
 
@@ -483,61 +485,81 @@ class _HomePageState
                               BorderRadius.circular(
                                   10),
 
-                          child: showCamera
+                          child: StreamBuilder<DocumentSnapshot>(
 
-                              ? MjpegView(
+                            stream: FirebaseFirestore.instance
+                                .collection('system_status')
+                                .doc('camera')
+                                .snapshots(),
 
-                                  uri:
-                                      'https://bernard-compact-noticed-primary.trycloudflare.com/video_feed',
+                            builder: (context, snapshot) {
+
+                              if (snapshot.hasData &&
+                                  snapshot.data!.exists) {
+
+                                final data =
+                                    snapshot.data!.data()
+                                        as Map<String, dynamic>;
+
+                                cameraUrl =
+                                    data['stream_url'];
+                              }
+
+                              if (showCamera &&
+                                  cameraUrl != null) {
+
+                                return MjpegView(
+
+                                  uri: cameraUrl!,
 
                                   fit: BoxFit.cover,
 
-                                  width:
-                                      double.infinity,
+                                  width: double.infinity,
 
-                                  timeout:
-                                      const Duration(
+                                  timeout: const Duration(
                                     seconds: 15,
                                   ),
-                                )
+                                );
+                              }
 
-                              : Column(
+                              return Column(
 
-                                  mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
 
-                                  children: [
+                                children: [
 
-                                    Icon(
-                                      Icons.videocam,
+                                  Icon(
+                                    Icons.videocam,
 
-                                      size: 55,
+                                    size: 55,
 
-                                      color: Colors
-                                          .grey
-                                          .shade400,
+                                    color:
+                                        Colors.grey.shade400,
+                                  ),
+
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+
+                                  Text(
+
+                                    cameraUrl == null
+                                        ? 'Camera Offline'
+                                        : 'Preview Kamera',
+
+                                    style: TextStyle(
+
+                                      fontSize: 18,
+
+                                      color:
+                                          Colors.grey.shade600,
                                     ),
-
-                                    const SizedBox(
-                                        height:
-                                            10),
-
-                                    Text(
-                                      'Preview Kamera',
-
-                                      style:
-                                          TextStyle(
-                                        fontSize:
-                                            18,
-
-                                        color: Colors
-                                            .grey
-                                            .shade600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                         ),
                       ),
 
@@ -559,11 +581,19 @@ class _HomePageState
 
                               try {
 
-                                await http.get(
-                                  Uri.parse(
-                                    'https://bernard-compact-noticed-primary.trycloudflare.com/stop',
-                                  ),
-                                );
+                                if (cameraUrl != null) {
+
+                                  await http.get(
+
+                                    Uri.parse(
+
+                                      cameraUrl!.replaceAll(
+                                        '/video_feed',
+                                        '/stop',
+                                      ),
+                                    ),
+                                  );
+                                }
 
                               } catch (e) {
 

@@ -66,6 +66,13 @@ class AdminPage extends StatelessWidget {
                   route: '/admin-biometric',
                 ),
 
+                _buildMenuCard(
+                  context,
+                  icon: Icons.build,
+                  title: 'Maintenance',
+                  route: '/admin-maintenance',
+                ),
+
               ],
             ),
 
